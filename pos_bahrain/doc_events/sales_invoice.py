@@ -47,6 +47,9 @@ def before_save(doc, method):
     set_cost_center(doc)
     set_location(doc)
 
+def before_submit(doc,method):
+    frappe.msgprint("before submit")
+    _make_gl_entry_for_provision_credit(doc)
 
 def on_submit(doc, method):
     for payment in doc.payments:
@@ -381,8 +384,9 @@ def _make_gl_entry_for_provision_credit(doc):
             "credit_in_account_currency": 0,
         },
     )
-
+    doc.pb_credit_note_no = je_doc.name
+    # frappe.db.sql("""UPDATE `tabSales Invoice` SET pb_credit_note_no='%(jv)s' where name='%(si)s'"""%
+    #                 {"jv":je_doc.name, "si":doc.name})
     je_doc.save()
     je_doc.submit()
-    frappe.db.sql("""UPDATE `tabSales Invoice` SET pb_credit_note_no='%(jv)s' where name='%(si)s'"""%
-                    {"jv":je_doc.name, "si":doc.name})
+    

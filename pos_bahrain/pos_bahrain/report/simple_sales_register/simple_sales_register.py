@@ -10,8 +10,18 @@ from toolz import compose, pluck, keyfilter, concatv
 
 def execute(filters=None):
     columns = _get_columns()
+
+    # if filters.get('warehouse'):
+    #     columns.append({
+    #         "label": 'Warehouse',
+    #         "fieldname": 'warehouse',
+    #         "fieldtype": 'Data',
+    #         "width": 200,
+    #     })
+            
     keys = _get_keys()
-    data = _get_data(_get_clauses(filters), filters, keys)
+
+    data = _get_data(_get_clauses(filters), filters, keys, filters)
     return columns, data
 
 
@@ -36,6 +46,8 @@ def _get_columns():
         make_column("tax", "Tax"),
         make_column("grand_total", "Grand Total"),
     ]
+    
+
     return columns
 
 
@@ -49,34 +61,41 @@ def _get_clauses(filters):
     invoice_type = {"Sales": 0, "Returns": 1}
     clauses = concatv(
         [
-            "docstatus = 1",
-            "company = %(company)s",
-            "posting_date BETWEEN %(from_date)s AND %(to_date)s",
+            "si.docstatus = 1",
+            "si.company = %(company)s",
+            "si.posting_date BETWEEN %(from_date)s AND %(to_date)s",
         ],
-        ["customer = %(customer)s"] if filters.get("customer") else [],
-        ["is_return = {}".format(invoice_type[filters.get("invoice_type")])]
-        if filters.get("invoice_type") in invoice_type
-        else [],
+        ["si.customer = %(customer)s"] if filters.get("customer") else [],
+        ["si.pos_profile = %(pos_profile)s"] if filters.get("pos_profile") else [],
+        ["si.is_return = {}".format(invoice_type[filters.get("invoice_type")])]
+        if filters.get("invoice_type") in invoice_type else [],
     )
     return " AND ".join(clauses)
 
 
-def _get_data(clauses, args, keys):
+def _get_data(clauses, args, keys, filters):
+    join_item_table =  ("""RIGHT JOIN
+                `tabSales Invoice Item` AS it
+                ON it.warehouse = '%(warehouse)s'
+                AND it.name = ( SELECT name FROM `tabSales Invoice Item` WHERE parent = si.name LIMIT 1)
+                        """%{'warehouse':filters.get('warehouse')}) if filters.get('warehouse') else ""
     items = frappe.db.sql(
         """
             SELECT
-                posting_date,
-                name AS invoice,
-                customer,
-                customer_name,
-                base_total AS total,
-                base_discount_amount AS discount,
-                base_net_total AS net_total,
-                base_total_taxes_and_charges AS tax,
-                base_grand_total AS grand_total
-            FROM `tabSales Invoice`
+                si.posting_date,
+                si.name AS invoice,
+                si.customer,
+                si.customer_name,
+                si.base_total AS total,
+                si.base_discount_amount AS discount,
+                si.base_net_total AS net_total,
+                si.base_total_taxes_and_charges AS tax,
+                si.base_grand_total AS grand_total
+            FROM `tabSales Invoice` AS si
+            {join_item_table}
             WHERE {clauses}
         """.format(
+            join_item_table = join_item_table,
             clauses=clauses
         ),
         values=args,

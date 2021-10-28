@@ -1,0 +1,45 @@
+{
+ "creation": "2021-10-28 13:51:57.516562",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "pe_number",
+  "party_name",
+  "mop",
+  "amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "pe_number",
+   "fieldtype": "Link",
+   "label": "PE Number",
+   "options": "Payment Entry"
+  },
+  {
+   "fieldname": "party_name",
+   "fieldtype": "Data",
+   "label": "Party Name"
+  },
+  {
+   "fieldname": "mop",
+   "fieldtype": "Data",
+   "label": "MOP"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Data",
+   "label": "Amount"
+  }
+ ],
+ "istable": 1,
+ "modified": "2021-10-28 13:53:00.741718",
+ "modified_by": "Administrator",
+ "module": "Pos Bahrain",
+ "name": "POS Closing Voucher Payment Entry Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

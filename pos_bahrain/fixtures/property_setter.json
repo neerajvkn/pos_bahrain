@@ -158,5 +158,22 @@
   "property": "in_list_view",
   "property_type": "Check",
   "value": "0"
- }
+ },
+ {
+   "default_value": null,
+   "doc_type": "POS Profile",
+   "docstatus": 0,
+   "doctype": "Property Setter",
+   "doctype_or_field": "DocType",
+   "field_name": null, 
+   "idx": 0,
+   "modified": "2021-10-16 19:38:08.245908",
+   "name": "POS Profile-track_changes",
+   "parent": null,
+   "parentfield": null,
+   "parenttype": null,
+   "property": "track_changes",
+   "property_type": "Check",
+   "value": "1"
+  }
 ]

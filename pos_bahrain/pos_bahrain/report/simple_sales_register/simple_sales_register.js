@@ -39,5 +39,17 @@ frappe.query_reports['Simple Sales Register'] = {
       options: ['Both', 'Sales', 'Returns'],
       default: 'Both',
     },
+    {
+      fieldname: 'warehouse',
+      label: __('Warehouse'),
+      fieldtype: 'Link',
+      options: 'Warehouse',
+    },
+    {
+      fieldname: 'pos_profile',
+      label: __('POS Profile'),
+      fieldtype: 'Link',
+      options: 'POS Profile',
+    },
   ],
 };

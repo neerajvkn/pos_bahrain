@@ -17,5 +17,14 @@ frappe.query_reports["Sales Gross Profit"] = {
 			"default": frappe.datetime.month_end()
 		},
 
-	]
+	],
+	"formatter": function(value, row, column, data, default_formatter) {
+		value = default_formatter(value, row, column, data);
+		if (column.fieldname == "outstanding" && data && data.outstanding > 0 ) {
+			value = "<span style='color:red'>" + value + "</span>";
+			// var $value = $(value).css("background-color", "red");;
+			// value = $value.wrap("<p></p>").parent().html();
+		}
+		return value;
+	}
 };

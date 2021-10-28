@@ -5,18 +5,18 @@
 frappe.query_reports["Daily Cash with Payment"] = {
 	"filters": [
 		{
-		  fieldname: 'from_date',
-		  label: __('From Date'),
-		  fieldtype: 'Date',
-		  reqd: 1,
-		  default: frappe.datetime.get_today(),
+			fieldname: 'from_date',
+			label: __('From Date'),
+			fieldtype: 'Date',
+			reqd: 1,
+			default: frappe.datetime.get_today(),
 		},
 		{
-		  fieldname: 'to_date',
-		  label: __('To Date'),
-		  fieldtype: 'Date',
-		  reqd: 1,
-		  default: frappe.datetime.get_today(),
+			fieldname: 'to_date',
+			label: __('To Date'),
+			fieldtype: 'Date',
+			reqd: 1,
+			default: frappe.datetime.get_today(),
 		},
 		{
 			fieldname: 'query_doctype',
@@ -36,18 +36,23 @@ frappe.query_reports["Daily Cash with Payment"] = {
 			reqd: 1,
 		},
 		{
-		    fieldname: 'show_customer_info',
-		    label: __('Show Customer Info'),
-		    fieldtype: 'Check',
+			fieldname: 'show_customer_info',
+			label: __('Show Customer Info'),
+			fieldtype: 'Check',
 		},
 		{
-		    fieldname: 'show_reference_info',
-		    label: __('Show Reference Info'),
-		    fieldtype: 'Check',
+			fieldname: 'show_reference_info',
+			label: __('Show Reference Info'),
+			fieldtype: 'Check',
 		},
 		{
 			fieldname: 'summary_view',
 			label: __('Summary View'),
+			fieldtype: 'Check'
+		},
+		{
+			fieldname: 'show_creator',
+			label: __('Show Creator'),
 			fieldtype: 'Check'
 		},
 	]

@@ -101,18 +101,54 @@ export default {
     const is_print_preview =
       frm.page.current_view_name === 'print' || frm.hidden;
     const action_label = is_print_preview ? 'Edit' : 'Print';
-    frm.page.set_primary_action(action_label, async function() {
-      let has_errored;
-      const m = await frm.save(undefined, undefined, undefined, () => {
-        has_errored = true;
-      });
-      if (!has_errored) {
+
+    frm.add_custom_button(__('Print'), function(){
+    //   frappe.msgprint(frm.doc.email);
+    // });
+
+    // frm.page.set_primary_action(action_label, async function() {
+      
+
+      let has_errored
+
+      // let has_errored = await frappe.call({
+      //   method: 'validate_doc',
+      //   doc: frm.doc,
+      // });
+      // frm.refresh();
+
+      frappe.call({
+        "method":"pos_bahrain.pos_bahrain.doctype.barcode_print.barcode_print.validate_doc",
+        "args":{
+          "item_table":cur_frm.doc.items
+        },
+        async : false,
+        callback: function(r){
+          has_errored = r.message
+        }
+      })
+
+      console.log("test")
+      console.log(has_errored)
+
+      // let has_errored;
+      // const m = await frm.save(undefined, undefined, undefined, () => {
+      //   has_errored = true;
+      // });
+      if (has_errored == 0) {
         frm.print_doc();
       }
     });
-    frm.page.set_secondary_action('Clear', async function() {
+    // frm.page.set_secondary_action('Clear', async function() {
+    frm.add_custom_button(__('Clear'), function(){
       frm.clear_table('items');
-      frm.refresh_field('items');
+      cur_frm.set_value("print_dt","")
+      cur_frm.set_value("use_warehouse","")
+      cur_frm.set_value("print_dn","")
+      cur_frm.set_value("company","")
+      cur_frm.set_value("price_list","")
+      cur_frm.set_value("set_warehouse","")
+      frm.refresh_fields();
     });
     frm.page.btn_secondary.toggle(!is_print_preview);
     load_print_docs_from_route(frm);

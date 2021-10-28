@@ -90,6 +90,27 @@ class POSClosingVoucher(Document):
         actual_payments, collection_payments = _get_payments(args)
         taxes = _get_taxes(args)
 
+        jsonString_col = json.dumps(sales, indent=4, sort_keys=True, default=str)
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/sales_get_invoices.txt","w+")
+        f3.write(jsonString_col)
+
+        jsonString_col = json.dumps(returns, indent=4, sort_keys=True, default=str)
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/returns_get_inovoices.txt","w+")
+        f3.write(jsonString_col)
+        taxes = _get_taxes(args)
+
+        jsonString_col = json.dumps(actual_payments, indent=4, sort_keys=True, default=str) #this value is correct - 187.0
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/actual_payments_get_payments.txt","w+")
+        f3.write(jsonString_col)
+
+        jsonString_col = json.dumps(collection_payments, indent=4, sort_keys=True, default=str) #this value is correct - 19.8
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/collection_payments_get_payments.txt","w+")
+        f3.write(jsonString_col)
+
+        jsonString_col = json.dumps(taxes, indent=4, sort_keys=True, default=str)
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/taxes.txt","w+")
+        f3.write(jsonString_col)
+
         def make_invoice(invoice):
             return merge(
                 pick(["grand_total", "paid_amount", "change_amount"], invoice),
@@ -101,14 +122,37 @@ class POSClosingVoucher(Document):
             )
 
         def make_payment(payment):
+
+            jsonString_col = json.dumps(payment, indent=4, sort_keys=True, default=str) #this value is correct
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/payment_arg_in_make_payment.txt","a+")
+            f3.write(jsonString_col)
+
+
             mop_conversion_rate = (
                 payment.amount / payment.mop_amount if payment.mop_amount else 1
             )
             expected_amount = (
                 payment.amount - sum_by("change_amount", sales)
-                if payment.is_default
+                if payment.is_default and not payment.pe_entry
                 else (payment.mop_amount or payment.amount)
             )
+
+            change_amount_make_payment = sum_by("change_amount", sales) #this value is correct - 1.9
+            jsonString_col = json.dumps(change_amount_make_payment, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/change_amount_make_payment.txt","a+")
+            f3.write(jsonString_col)
+            f3.write(" --- ")
+
+            jsonString_col = json.dumps(payment.amount, indent=4, sort_keys=True, default=str) #this value is correct - 187
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/payment_amount_make_payment.txt","a+")
+            f3.write(jsonString_col)
+            f3.write(" --- ")
+
+            jsonString_col = json.dumps(expected_amount, indent=4, sort_keys=True, default=str) #this value is correct - 185.1
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/expected_amount_make_payment.txt","a+")
+            f3.write(jsonString_col)
+            f3.write(" --- ")
+
             return merge(
                 pick(["is_default", "mode_of_payment", "type"], payment),
                 {
@@ -139,18 +183,55 @@ class POSClosingVoucher(Document):
         self.tax_total = sum_by("tax_amount", taxes)
         self.discount_total = sum_by("discount_amount", sales)
         self.change_total = sum_by("change_amount", sales)
-        self.total_collected = (
-            sum_by("amount", actual_payments)
-            + sum_by("amount", collection_payments)
-            - self.change_total
+        self.total_collected = ( #319.9
+            sum_by("amount", actual_payments) #302.0 // cash + benifit // benifit = 115, cash 187 // 
+            + sum_by("amount", collection_payments) #19.8
+            - self.change_total #1.9
         )
+
+        total_collected = ( sum_by("amount", actual_payments) + sum_by("amount", collection_payments) - self.change_total )
+
+        jsonString_col = json.dumps(total_collected, indent=4, sort_keys=True, default=str)
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/total_collected.txt","a+")
+        f3.write(jsonString_col)
+
+        total_actual_payment = sum_by("amount", actual_payments)
+        total_collection_payment = sum_by("amount", collection_payments)
+        total_change = self.change_total
+
+        jsonString_col = json.dumps(total_actual_payment, indent=4, sort_keys=True, default=str)
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/total_actual_payment.txt","a+")
+        f3.write(jsonString_col)
+        jsonString_col = json.dumps(total_collection_payment, indent=4, sort_keys=True, default=str)
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/total_collection_payment.txt","a+")
+        f3.write(jsonString_col)
+        jsonString_col = json.dumps(total_change, indent=4, sort_keys=True, default=str)
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/total_change.txt","a+")
+        f3.write(jsonString_col)
 
         self.invoices = []
         for invoice in sales:
             self.append("invoices", make_invoice(invoice))
+            
+            inv_data = make_invoice(invoice) #this value is correct
+            jsonString_col = json.dumps(inv_data, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/inv_data_invoices.txt","a+")
+            f3.write(jsonString_col)
+
+        taxes = _get_taxes(args)
+
+        jsonString_col = json.dumps(taxes, indent=4, sort_keys=True, default=str)
+        f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/taxes.txt","a+")
+        f3.write(jsonString_col)
+        
         self.returns = []
         for invoice in returns:
             self.append("returns", make_invoice(invoice))
+
+            return_inv_data = make_invoice(invoice)
+            jsonString_col = json.dumps(return_inv_data, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/return_inv_data_invoices.txt","a+")
+            f3.write(jsonString_col)
 
         existing_payments = self.payments
 
@@ -171,16 +252,62 @@ class POSClosingVoucher(Document):
                     make_payment(payment), get_form_collected(payment.mode_of_payment)
                 ),
             )
+
+            jsonString_col = json.dumps(actual_payments, indent=4, sort_keys=True, default=str) #this value is correct 187.1
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/actual_payment_arg.txt","a+")
+            f3.write(jsonString_col)
+
+            actual_payment_data_218 = make_payment(payment) #this value is correct - 185.1
+            jsonString_col = json.dumps(actual_payment_data_218, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/actual_payment_data_218.txt","a+")
+            f3.write(jsonString_col)
+
+            payment_data = merge(make_payment(payment), get_form_collected(payment.mode_of_payment)) #this value is correct - 185.1
+            jsonString_col = json.dumps(payment_data, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/payment_data.txt","a+")
+            f3.write(jsonString_col)
+
         for payment in collection_payments:
+            payment.update({"pe_entry":1})
+
+            jsonString_col = json.dumps(collection_payments, indent=4, sort_keys=True, default=str) #this value is correct - 19.8
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/collection_payments_220.txt","a+")
+            f3.write(jsonString_col)
+            
+
+            make_payment_data = make_payment(payment)
+            jsonString_col = json.dumps(make_payment_data, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/make_payment_data.txt","a+")
+            f3.write(jsonString_col)
+
+
+            get_form_collected_data = get_form_collected(payment.mode_of_payment) #this value is correct - 19.8
+            jsonString_col = json.dumps(get_form_collected_data, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/get_form_collected_data.txt","a+")
+            f3.write(jsonString_col)
+
+
             collected_payment = merge(
                 make_payment(payment), get_form_collected(payment.mode_of_payment)
             )
+
+            collection_payment_data = merge( make_payment(payment), get_form_collected(payment.mode_of_payment)) #this value is correct - 19.8
+            jsonString_col = json.dumps(collection_payment_data, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/collection_payment_data.txt","a+")
+            f3.write(jsonString_col)
+
             existing_payment = list(
                 filter(
                     lambda x: x.mode_of_payment == collected_payment["mode_of_payment"],
                     self.payments,
                 )
             )[0]
+
+
+            jsonString_col = json.dumps(existing_payment, indent=4, sort_keys=True, default=str)
+            f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/existing_payment_data.txt","a+")
+            f3.write(jsonString_col)
+
             if existing_payment:
                 for field in [
                     "expected_amount",
@@ -245,8 +372,13 @@ def _get_clauses(args):
         ],
         ["si.owner = %(user)s"] if args.get("user") else [],
     )
-    return " AND ".join(clauses)
 
+    jsonString_col = json.dumps(clauses, indent=4, sort_keys=True, default=str)
+    f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/clauses.txt","w+")
+    f3.write(jsonString_col)
+
+    return " AND ".join(clauses)
+    
 
 def _get_invoices(args):
     sales = frappe.db.sql(
@@ -343,9 +475,20 @@ def _get_payments(args):
         as_dict=1,
     )
 
+    d1 = _correct_mop_amounts(sales_payments, default_mop)
+    d2 =  _correct_mop_amounts(collection_payments, default_mop)
+
+    jsonString_col = json.dumps(d1, indent=4, sort_keys=True, default=str) # this values are correct
+    f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/sales_payments.txt","w+")
+    f3.write(jsonString_col)
+
+    jsonString_col = json.dumps(d2, indent=4, sort_keys=True, default=str) # this values are correct
+    f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pcv/collection_payments.txt","w+")
+    f3.write(jsonString_col)
+
     return (
-        _correct_mop_amounts(sales_payments, default_mop),
-        _correct_mop_amounts(collection_payments, default_mop),
+        _correct_mop_amounts(sales_payments, default_mop), #// this values are correct
+        _correct_mop_amounts(collection_payments, default_mop),  #// this values are correct
     )
 
 

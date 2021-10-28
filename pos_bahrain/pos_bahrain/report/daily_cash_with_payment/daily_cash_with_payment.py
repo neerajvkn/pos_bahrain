@@ -7,6 +7,7 @@ from frappe import _
 from datetime import datetime
 from functools import partial, reduce
 from toolz import groupby, pluck, compose, merge, keyfilter
+import json
 
 def execute(filters=None):
 	mop = _get_mop()
@@ -22,6 +23,7 @@ def _get_columns(mop, filters):
 	show_customer_info = filters.get('show_customer_info')
 	show_ref_info = filters.get('show_reference_info')
 	columns = []
+	show_creator = filters.get('show_creator')
 
 	def make_column(key, label=None, type="Data", options=None, width=120):
 		return {
@@ -56,6 +58,11 @@ def _get_columns(mop, filters):
 			make_column("ref_no", "Ref No"),
 			# make_column("ref_date", "Ref Date"),
 		])
+	if show_creator:
+		columns.extend([
+			make_column("show_creator", "Show Creator"),
+			# make_column("ref_date", "Ref Date"),
+		])
 
 	print(columns)
 
@@ -85,6 +92,7 @@ def _get_data(clauses, filters, mop):
 				sip.mode_of_payment AS mode_of_payment,
 				sip.amount AS amount,
 				sip.pb_reference_no AS ref_no,
+				usert.full_name as show_creator,
 				sip.pb_reference_date AS ref_date,
 				si.customer AS customer,
 				si.customer_name AS customer_name,
@@ -96,6 +104,8 @@ def _get_data(clauses, filters, mop):
 				sip.parent = si.name
 			LEFT JOIN `tabPOS Profile` AS pp ON
 				pp.name = si.pos_profile
+			LEFT JOIN
+				`tabUser` as usert ON usert.email = si.owner
 			WHERE {clauses}
 		""".format(
 			clauses=clauses
@@ -129,7 +139,7 @@ def _get_data(clauses, filters, mop):
 				c.name = pe.party_name
 			LEFT JOIN `tabPOS Profile` AS pp ON
 				pp.name = pe.pb_pos_profile
-			WHERE {pe_clauses}
+			WHERE {pe_clauses} AND pe.docstatus = 1
 		""".format(
 			pe_clauses = pe_clauses
 		),
@@ -218,6 +228,10 @@ def _sum_invoice_payments(invoice_payments, mop):
 			make_change_total(invoice_payment_row)
 		)
 
+		jsonString_col = json.dumps(data, indent=4, sort_keys=True, default=str)
+		f3= open("/home/demo9t9it/frappe-bench/apps/pos_bahrain/pos_bahrain/pos_bahrain/report/daily_cash_with_payment/txt/data.txt","a+")
+		f3.write(jsonString_col)
+
 	return data
 
 
@@ -265,6 +279,8 @@ def _make_payment_row(mop_cols, _, row):
 		_['mobile_no'] = row.get('mobile_no')
 	if not _.get('ref_no'):
 		_['ref_no'] = row.get('ref_no')
+	if not _.get('show_creator'):
+		_['show_creator'] = row.get('show_creator')
 	# if not _.get('ref_date'):
 	# 	_['ref_date'] = row.get('ref_date')
 
@@ -292,6 +308,7 @@ def _new_invoice_payment(mop_cols):
 		'customer_name': None,
 		'mobile_no': None,
 		'ref_no' : None,
+		'show_creator':None
 		# 'ref_date' :None
 	}
 

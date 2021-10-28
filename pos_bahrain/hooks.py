@@ -290,6 +290,7 @@ doc_events = {
         "validate": "pos_bahrain.doc_events.sales_invoice.validate",
         "before_save": "pos_bahrain.doc_events.sales_invoice.before_save",
         "on_submit": "pos_bahrain.doc_events.sales_invoice.on_submit",
+        "before_submit": "pos_bahrain.doc_events.sales_invoice.before_submit",
         "before_cancel": "pos_bahrain.doc_events.sales_invoice.before_cancel",
         "on_cancel": "pos_bahrain.doc_events.sales_invoice.on_cancel",
     },
